@@ -2,40 +2,48 @@
 {
     internal class Program
     {
-        volatile static bool _stop = false;
+        static int x = 0;
+        static int y = 0;
+        static int result1 = 0;
+        static int result2 = 0;
+
+
+        static void Thread_1()
+        {
+            y = 1;
+            result1 = x;
+        }
+
+        static void Thread_2()
+        {
+            x = 1;
+            result2 = y;
+        }
 
         static void Main(string[] args)
         {
-            int[,] arr = new int[10000, 10000];
-
-            // 공간 지역성에 따라 속도 차이 발생(캐시)
+            int count = 0;
+            while (true)
             {
-                long now = DateTime.Now.Ticks;
-                for (int i = 0; i < 10000; i++)
+                count++;
+                x = y = result1 = result2 = 0;
+
+                Task t1 = new Task(Thread_1);
+                Task t2 = new Task(Thread_2);
+
+                t1.Start();
+                t2.Start();
+                
+                Task.WaitAll(t1, t2);
+
+                // 하드웨어 최적화 때문에 아래 조건 성립
+                if(result1 == 0 && result2 == 0)
                 {
-                    for (int j = 0; j < 10000; j++)
-                    {
-                        arr[i, j] = 1;
-                    }
+                    break;
                 }
-                long end = DateTime.Now.Ticks;
-                Console.WriteLine($"(i,j) 순서 걸린 시간 {end - now}");
             }
 
-            {
-                long now = DateTime.Now.Ticks;
-                for (int i = 0; i < 10000; i++)
-                {
-                    for (int j = 0; j < 10000; j++)
-                    {
-                        arr[j, i] = 1;
-                    }
-                }
-                long end = DateTime.Now.Ticks;
-                Console.WriteLine($"(j,i) 순서 걸린 시간 {end - now}");
-            }
-
-
+            Console.WriteLine($"{count}");
         }
     }
 }
