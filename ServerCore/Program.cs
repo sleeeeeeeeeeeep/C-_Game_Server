@@ -1,15 +1,17 @@
-﻿namespace ServerCore
+﻿using System.Threading;
+
+namespace ServerCore
 {
     internal class Program
     {
-        // 경합조건 발생(race condition)
         static int number = 0;
 
         static void Thread_1()
         {
             for(int i = 0; i < 100000; i++) 
             {
-                number++;
+                // number++ 원자성 보장하기 위해 사용, 속도 느려짐
+                Interlocked.Increment(ref number);
             }
         }
 
@@ -17,7 +19,8 @@
         {
             for (int i = 0; i < 100000; i++)
             {
-                number--;
+                // number-- 원자성 보장하기 위해 사용, 속도 느려짐
+                Interlocked.Decrement(ref number);
             }
         }
 
