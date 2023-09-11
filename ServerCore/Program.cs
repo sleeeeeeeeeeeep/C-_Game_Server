@@ -2,49 +2,40 @@
 {
     internal class Program
     {
-        static void MainThread(Object state)
-        {   
-            for(int i = 0; i < 10;  i++)
-            {
-                Console.WriteLine("thread, " + i);
-            }
-        }
+        volatile static bool _stop = false;
 
         static void Main(string[] args)
-        {         
-            // 짧은 작업은 부담이 적은 스레드 풀 사용
-            ThreadPool.SetMinThreads(1, 1);
-            ThreadPool.SetMaxThreads(5, 5);
+        {
+            int[,] arr = new int[10000, 10000];
 
-            // 모든 스레드 풀 사용
-            for (int i = 0; i < 5; i++)
+            // 공간 지역성에 따라 속도 차이 발생(캐시)
             {
-                // 얘도 스레드 풀에서 관리
-                Task t = new Task(() => { while (true) { } }, TaskCreationOptions.LongRunning); // 긴 작업이라고 지정
-                t.Start();
+                long now = DateTime.Now.Ticks;
+                for (int i = 0; i < 10000; i++)
+                {
+                    for (int j = 0; j < 10000; j++)
+                    {
+                        arr[i, j] = 1;
+                    }
+                }
+                long end = DateTime.Now.Ticks;
+                Console.WriteLine($"(i,j) 순서 걸린 시간 {end - now}");
             }
-            // 긴 작업이라고 지정하면 동작함(지정 안하면 X)
-            ThreadPool.QueueUserWorkItem(MainThread);
 
-            //// 모든 스레드 풀 사용
-            //for (int i = 0;i < 5;i++)
-            //{
-            //    ThreadPool.QueueUserWorkItem((obj) => { while (true) { } });
-            //}
-            //// 동작 안함
-            //ThreadPool.QueueUserWorkItem(MainThread);
+            {
+                long now = DateTime.Now.Ticks;
+                for (int i = 0; i < 10000; i++)
+                {
+                    for (int j = 0; j < 10000; j++)
+                    {
+                        arr[j, i] = 1;
+                    }
+                }
+                long end = DateTime.Now.Ticks;
+                Console.WriteLine($"(j,i) 순서 걸린 시간 {end - now}");
+            }
 
-            //Thread t = new Thread(MainThread);
-            //t.Name = "Test thread";
-            //t.IsBackground = true; // 기본: false
-            //t.Start();
-            
-            //Console.WriteLine("wait thread");
 
-            //t.Join(); // 스레드 종료까지 대기
-
-            Console.WriteLine("Hello, World!");
-            while (true) { }
         }
     }
 }
