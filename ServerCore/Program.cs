@@ -11,14 +11,10 @@ namespace ServerCore
         {
             for(int i = 0; i < 100000; i++) 
             {
-
-                // 상호배제(mutual exclusive)
-
-                Monitor.Enter(_obj); // lock
-
-                number++;
-
-                Monitor.Exit(_obj); // unlock
+                lock (_obj) 
+                { 
+                    number++; 
+                }
             }
         }
 
@@ -26,11 +22,10 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                Monitor.Enter(_obj); // lock
-
-                number--;
-
-                Monitor.Exit(_obj); // unlock
+                lock(_obj)
+                {
+                    number--;
+                }
             }
         }
 
