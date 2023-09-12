@@ -2,6 +2,49 @@
 
 namespace ServerCore
 {
+    class SessionManager
+    {
+        static object _lock = new object();
+
+        public static void TestSession()
+        {
+            lock (_lock)
+            {
+
+            }
+        }
+
+        public static void Test()
+        {
+            lock (_lock)
+            {
+                UserManager.TestUser();
+            }
+        }
+    }
+    
+
+    class UserManager
+    {
+        static object _lock = new object();
+
+        public static void TestUser()
+        {
+            lock (_lock)
+            {
+
+            }
+        }
+
+        public static void Test()
+        {
+            lock (_lock)
+            {
+                SessionManager.TestSession();
+            }
+        }
+    }
+
     internal class Program
     {
         static int number = 0;
@@ -11,10 +54,7 @@ namespace ServerCore
         {
             for(int i = 0; i < 100000; i++) 
             {
-                lock (_obj) 
-                { 
-                    number++; 
-                }
+                SessionManager.Test();
             }
         }
 
@@ -22,10 +62,7 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                lock(_obj)
-                {
-                    number--;
-                }
+                UserManager.Test();
             }
         }
 
