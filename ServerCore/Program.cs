@@ -13,12 +13,21 @@ namespace ServerCore
         {
             while(true)
             {
-                // original: _locked가 가지고 있던 원래 값
-                // Interlocked.Exchange(ref _locked, 1); -> _locked에 1 입력
-                int original = Interlocked.Exchange(ref _locked, 1);
+                //// original: _locked가 가지고 있던 원래 값
+                //// Interlocked.Exchange(ref _locked, 1); -> _locked에 1 삽입
+                //int original = Interlocked.Exchange(ref _locked, 1);
 
-                // 다른 스레드에서 락을 걸지 않았을 때(1이면 락이 걸린 것)
-                if (original == 0)
+                //// 다른 스레드에서 락을 걸지 않았을 때(1이면 락이 걸린 것)
+                //if (original == 0)
+                //{
+                //    break;
+                //}
+
+                int expected = 0;
+                int desired = 1;
+                // Interlocked.Exchange(ref _locked, 1, 0); -> _locked와 0(두 번째 인자)이 같으면 _locked에 1 삽입
+                int original = Interlocked.CompareExchange(ref _locked, desired, expected);
+                if (original == expected)
                 {
                     break;
                 }
