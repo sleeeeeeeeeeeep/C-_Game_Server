@@ -2,59 +2,49 @@
 
 namespace ServerCore
 {
-    class SessionManager
+    // spinlock 예제
+    class SpinLock
     {
-        static object _lock = new object();
+        // lock state
+        volatile int _locked = 0;
 
-        public static void TestSession()
+        // lock
+        public void Acquire()
         {
-            lock (_lock)
+            while(true)
             {
+                // original: _locked가 가지고 있던 원래 값
+                // Interlocked.Exchange(ref _locked, 1); -> _locked에 1 입력
+                int original = Interlocked.Exchange(ref _locked, 1);
 
+                // 다른 스레드에서 락을 걸지 않았을 때(1이면 락이 걸린 것)
+                if (original == 0)
+                {
+                    break;
+                }
             }
+            
         }
 
-        public static void Test()
+        // unlock
+        public void Relase()
         {
-            lock (_lock)
-            {
-                UserManager.TestUser();
-            }
-        }
-    }
-    
-
-    class UserManager
-    {
-        static object _lock = new object();
-
-        public static void TestUser()
-        {
-            lock (_lock)
-            {
-
-            }
-        }
-
-        public static void Test()
-        {
-            lock (_lock)
-            {
-                SessionManager.TestSession();
-            }
+            _locked = 0;
         }
     }
 
     internal class Program
     {
-        static int number = 0;
-        static object _obj = new object();
+        static int _num = 0;
+        static SpinLock _lock = new SpinLock();
 
         static void Thread_1()
         {
-            for(int i = 0; i < 100000; i++) 
+            for (int i = 0; i < 100000; i++)
             {
-                SessionManager.Test();
+                _lock.Acquire();
+                _num++;
+                _lock.Relase();
             }
         }
 
@@ -62,7 +52,9 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                UserManager.Test();
+                _lock.Acquire();
+                _num--;
+                _lock.Relase();
             }
         }
 
@@ -76,7 +68,7 @@ namespace ServerCore
 
             Task.WaitAll(t1, t2);
 
-            Console.WriteLine(number);
+            Console.WriteLine(_num);
         }
     }
 }
