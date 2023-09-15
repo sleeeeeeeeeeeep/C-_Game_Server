@@ -2,54 +2,34 @@
 
 namespace ServerCore
 {
-    // spinlock 예제
-    class SpinLock
+    // AutoResetEvent
+    class Lock
     {
-        // lock state
-        volatile int _locked = 0;
+        // 입장 가능한지(true), 하나가 들어오면 false로 바뀜
+        AutoResetEvent _available = new AutoResetEvent(true);
 
         // lock
         public void Acquire()
         {
-            while(true)
-            {
-                //// original: _locked가 가지고 있던 원래 값
-                //// Interlocked.Exchange(ref _locked, 1); -> _locked에 1 삽입
-                //int original = Interlocked.Exchange(ref _locked, 1);
-
-                //// 다른 스레드에서 락을 걸지 않았을 때(1이면 락이 걸린 것)
-                //if (original == 0)
-                //{
-                //    break;
-                //}
-
-                int expected = 0;
-                int desired = 1;
-                // Interlocked.Exchange(ref _locked, 1, 0); -> _locked와 0(두 번째 인자)이 같으면 _locked에 1 삽입
-                int original = Interlocked.CompareExchange(ref _locked, desired, expected);
-                if (original == expected)
-                {
-                    break;
-                }
-            }
-            
+            _available.WaitOne(); // 입장 시도
+            // _available.Reset(); // flag -> false로 변경, WaitOne() 에서 실행됨
         }
 
         // unlock
         public void Relase()
         {
-            _locked = 0;
+           _available.Set(); // flag -> true로 변경
         }
     }
 
     internal class Program
     {
         static int _num = 0;
-        static SpinLock _lock = new SpinLock();
+        static Lock _lock = new Lock();
 
         static void Thread_1()
         {
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 _lock.Acquire();
                 _num++;
@@ -59,7 +39,7 @@ namespace ServerCore
 
         static void Thread_2()
         {
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 _lock.Acquire();
                 _num--;
