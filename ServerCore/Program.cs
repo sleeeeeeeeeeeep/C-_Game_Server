@@ -2,43 +2,37 @@
 
 namespace ServerCore
 {
-    // 뮤텍스 사용, 얘도 스핀락보다 느림(커널까지 갔다가 와서)
     internal class Program
     {
-        static int _num = 0;
-        static Mutex _lock = new Mutex();
+        // Monitor 사용
+        static object _lock1 = new object();
 
-        static void Thread_1()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                _lock.WaitOne();
-                _num++;
-                _lock.ReleaseMutex();
-            }
-        }
+        // 스핀락 클래스 사용(너무 오래 락 걸려있으면 쉬다 옴)
+        static SpinLock _lock2 = new SpinLock();
 
-        static void Thread_2()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                _lock.WaitOne();
-                _num--;
-                _lock.ReleaseMutex();
-            }
-        }
-
+        // 느림, 다른 프로그램들 간 락 사용 가능(커널에서 동작하기 때문)
+        static Mutex _lock3 = new Mutex();
+        
         static void Main(string[] args)
         {
-            Task t1 = new Task(Thread_1);
-            Task t2 = new Task(Thread_2);
+            lock (_lock1)
+            {
+                // 동작
+            }
 
-            t1.Start();
-            t2.Start();
-
-            Task.WaitAll(t1, t2);
-
-            Console.WriteLine(_num);
+            bool locked = false;
+            try
+            {
+                _lock2.Enter(ref locked);
+            }
+            finally
+            {
+                if (locked)
+                {
+                    _lock2.Exit();
+                }
+            }
         }
+        
     }
 }
