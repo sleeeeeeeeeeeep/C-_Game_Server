@@ -2,39 +2,39 @@
 
 namespace ServerCore
 {
+    // thread local storage
     internal class Program
     {
-        static volatile int count = 0;
-        static Lock _lock = new Lock();
+        static ThreadLocal<string> ThreadName = new ThreadLocal<string>(() => { 
+            return Thread.CurrentThread.ManagedThreadId.ToString();
+        });
+
+        static void GetThreadName()
+        {
+            bool isRepeat = ThreadName.IsValueCreated;
+
+            if(isRepeat)
+            {
+                Console.WriteLine(ThreadName.Value + "repeat");
+            }
+            else
+            {
+                Console.WriteLine(ThreadName.Value);
+            }
+
+            Thread.Sleep(1000);
+
+            Console.WriteLine(ThreadName.Value);
+        }
 
         static void Main(string[] args)
         {
-            Task t1 = new Task(delegate ()
-            {
-                for (int i = 0; i < 100000; i++) 
-                {
-                    _lock.WriteLock();
-                    count++;
-                    _lock.WriteUnlock();
-                }
-            });
+            ThreadPool.SetMinThreads(1, 1);
+            ThreadPool.SetMaxThreads(3, 3);
 
-            Task t2 = new Task(delegate ()
-            {
-                for (int i = 0; i < 100000; i++)
-                {
-                    _lock.WriteLock();
-                    count--;
-                    _lock.WriteUnlock();
-                }
-            });
-
-            t1.Start();
-            t2.Start();
-
-            Task.WaitAll(t1, t2);
-
-            Console.WriteLine(count);
+            Parallel.Invoke(GetThreadName, GetThreadName, GetThreadName, GetThreadName, GetThreadName, GetThreadName);
+        
+            ThreadName.Dispose();
         }
         
     }
