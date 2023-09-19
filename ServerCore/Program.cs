@@ -12,21 +12,19 @@ namespace ServerCore
         {
             try
             {
-                // 받음
-                byte[] recvBuffer = new byte[1024];
-                int recvBtyes = clientSocket.Receive(recvBuffer);
-                string recvData = Encoding.UTF8.GetString(recvBuffer, 0, recvBtyes);
-                Console.WriteLine($"client: {recvData}");
+                Session session = new Session();
+                session.Start(clientSocket);
 
                 // 보냄
                 byte[] sendBuffer = Encoding.UTF8.GetBytes("send from sever");
-                clientSocket.Send(sendBuffer);
+                session.Send(sendBuffer);
 
-                // 연결 해제
-                clientSocket.Shutdown(SocketShutdown.Both);
-                clientSocket.Close();
+                Thread.Sleep(1000);
+
+                session.Disconnect();
+                session.Disconnect();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
