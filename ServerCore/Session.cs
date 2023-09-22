@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ServerCore
 {
-    internal class Session
+    abstract class Session
     {
         Socket _socket;
         int _disconnected = 0;
@@ -22,6 +23,10 @@ namespace ServerCore
         List<ArraySegment<byte>> _pendingList = new List<ArraySegment<byte>>(); // 큐에 있었던 모든 데이터
         SocketAsyncEventArgs _sendArgs = new SocketAsyncEventArgs();
 
+        public abstract void OnConnected(EndPoint endPoint);
+        public abstract void OnReceived(ArraySegment<byte> buffer);
+        public abstract void OnSend(int numOfBytes);
+        public abstract void OnDisconnected(EndPoint endPoint);
 
         public void Start(Socket socket)
         {
@@ -63,6 +68,7 @@ namespace ServerCore
             }
 
             // 연결 해제
+            OnConnected(_socket.RemoteEndPoint);
             _socket.Shutdown(SocketShutdown.Both);
             _socket.Close();
         }
@@ -95,7 +101,7 @@ namespace ServerCore
                         _sendArgs.BufferList = null;
                         _pendingList.Clear();
 
-                        Console.WriteLine($"Transfreed bytes: {_sendArgs.BytesTransferred}");
+                        OnSend(_sendArgs.BytesTransferred);
 
                         // 큐에 사람있어요
                         if (_sendQueue.Count > 0)
@@ -133,9 +139,7 @@ namespace ServerCore
             {
                 try
                 {
-                    string recvData = Encoding.UTF8.GetString(args.Buffer, args.Offset, args.BytesTransferred);
-                    Console.WriteLine($"client: {recvData}");
-
+                    OnReceived(new ArraySegment<byte>(args.Buffer, args.Offset, args.BytesTransferred));
                     RegisterReceive();
                 }
                 catch (Exception e)
