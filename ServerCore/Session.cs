@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ServerCore
 {
-    abstract class Session
+    public abstract class Session
     {
         Socket _socket;
         int _disconnected = 0;
@@ -68,7 +68,7 @@ namespace ServerCore
             }
 
             // 연결 해제
-            OnConnected(_socket.RemoteEndPoint);
+            OnDisconnected(_socket.RemoteEndPoint);
             _socket.Shutdown(SocketShutdown.Both);
             _socket.Close();
         }
