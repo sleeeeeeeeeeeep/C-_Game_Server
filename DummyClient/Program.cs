@@ -16,10 +16,12 @@ namespace DummyClient
             Send(sendBuffer);
         }
 
-        public override void OnReceived(ArraySegment<byte> buffer)
+        public override int OnReceived(ArraySegment<byte> buffer)
         {
             string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
             Console.WriteLine($"서버에서 받은거 : {recvData}");
+
+            return buffer.Count;
         }
 
         public override void OnSend(int numOfBytes)
