@@ -21,7 +21,7 @@ namespace ServerCore
         SocketAsyncEventArgs _receiveArgs = new SocketAsyncEventArgs();
 
         // send할 내역들 큐로 관리
-        Queue<byte[]> _sendQueue = new Queue<byte[]>();
+        Queue<ArraySegment<byte>> _sendQueue = new Queue<ArraySegment<byte>>();
         List<ArraySegment<byte>> _pendingList = new List<ArraySegment<byte>>(); // 큐에 있었던 모든 데이터
         SocketAsyncEventArgs _sendArgs = new SocketAsyncEventArgs();
 
@@ -45,7 +45,7 @@ namespace ServerCore
         // -> 큐에 있는 애들 다 빼서 _pendingList에 넣음 -> _pendingList를 _sendArgs.BufferList에 넣음
         // -> sendAsync로 보냄 -> 보냈으면 OnSendCompleted() -> _pendingList, _sendArgs.BufferList 깔끔하게 지움
         // -> 보내는 동안에 다른 애가 큐에 집어넣으면 다시 RegisterSend()...
-        public void Send(byte[] sendBuffer)
+        public void Send(ArraySegment<byte> sendBuffer)
         {
             // 락(멀티스레드 동작)
             lock (_lock)
@@ -78,8 +78,8 @@ namespace ServerCore
         {
             while(_sendQueue.Count > 0)
             {
-                byte[] data = _sendQueue.Dequeue();
-                _pendingList.Add(new ArraySegment<byte>(data, 0, data.Length));
+                ArraySegment<byte> data = _sendQueue.Dequeue();
+                _pendingList.Add(data);
             }
             _sendArgs.BufferList = _pendingList;
 
