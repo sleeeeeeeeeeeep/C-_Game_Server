@@ -9,6 +9,47 @@ using System.Threading.Tasks;
 
 namespace ServerCore
 {
+    // 패킷 구성: [size(2)] [packetId(2)] [...] [size(2)] [packetId(2)] [...] [size(2)] [packetId(2)] [...]
+    public abstract class PacketSession: Session
+    {
+        public static readonly int HeaderSize = 2;
+
+        // sealed: 상속받은 애가 오버라이드 못하게
+        public sealed override int OnReceived(ArraySegment<byte> buffer)
+        {
+            int processLength = 0;
+
+            while (true)
+            {
+                // 헤더 크기도 못받았으면 break
+                if (buffer.Count < HeaderSize) 
+                {
+                    break;
+                }
+
+                ushort dataSize = BitConverter.ToUInt16(buffer.Array, buffer.Offset); // 패킷 사이즈
+
+                // 패킷이 전부 안왔으면 break
+                if (buffer.Count < dataSize)
+                {
+                    break;
+                }
+
+                // 패킷 처리 가능하면 얘 실행
+                OnReceivedPacket(new ArraySegment<byte> (buffer.Array, buffer.Offset, dataSize));
+
+                processLength += dataSize;
+                
+                // 처리한 버퍼 부분 날리기(다시 버퍼 구성)
+                buffer = new ArraySegment<byte>(buffer.Array, buffer.Offset + dataSize, buffer.Count - dataSize);
+            }
+
+            return processLength;
+        }
+
+        public abstract void OnReceivedPacket(ArraySegment<byte> buffer);
+    }
+
     public abstract class Session
     {
         Socket _socket;

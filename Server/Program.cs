@@ -6,27 +6,41 @@ using ServerCore;
 
 namespace Server
 {
-    class GameSession : Session
+    class Packet
+    {
+        public ushort size;
+        public ushort packetId;
+    }
+
+    class GameSession : PacketSession
     {
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"Connected : {endPoint}");
 
+            Packet packet = new Packet() { size = 50, packetId = 1 };
+
+            ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
+            byte[] buffer1 = BitConverter.GetBytes(packet.size);
+            byte[] buffer2 = BitConverter.GetBytes(packet.packetId);
+            Array.Copy(buffer1, 0, openSegement.Array, openSegement.Offset, buffer1.Length);
+            Array.Copy(buffer2, 0, openSegement.Array, openSegement.Offset + buffer1.Length, buffer2.Length);
+            ArraySegment<byte> sendBuffer = SendBufferHelper.Close(buffer1.Length + buffer2.Length);
+
             // 보냄
-            byte[] sendBuffer = Encoding.UTF8.GetBytes("send from sever");
             Send(sendBuffer);
 
-            Thread.Sleep(1000);
+            Thread.Sleep(5000);
 
             Disconnect();
         }
 
-        public override int OnReceived(ArraySegment<byte> buffer)
+        public override void OnReceivedPacket(ArraySegment<byte> buffer)
         {
-            string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
-            Console.WriteLine($"받은거 : {recvData}");
+            ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
+            ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + size);
 
-            return buffer.Count;
+            Console.WriteLine($"패킷사이즈: {size}, 패킷아이디: {id}");
         }
 
         public override void OnSend(int numOfBytes)
