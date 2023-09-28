@@ -9,21 +9,87 @@ using System.Threading.Tasks;
 
 namespace DummyClient
 {
-    class Packet
+    public abstract class Packet
     {
         public ushort size;
         public ushort packetId;
+
+        public abstract ArraySegment<byte> Write();
+        public abstract void Read(ArraySegment<byte> arraySegement);
+
     }
 
     class PlayerInfoReq : Packet 
     {
         public long playerId;
-    }
 
-    class PlayerInfoRes : Packet
-    {
-        public int hp;
-        public int attack;
+        public PlayerInfoReq()
+        {
+            this.packetId = (ushort)PacketID.PlayerInfoReq;
+        }
+
+        public override void Read(ArraySegment<byte> arraySegement)
+        {
+            ushort count = 0;
+
+            count += 2;
+            count += 2;
+
+            BitConverter.ToUInt64(
+                new ReadOnlySpan<byte>(
+                    arraySegement.Array, 
+                    arraySegement.Offset + count, 
+                    arraySegement.Count - count
+                )
+            );
+            count += 8;
+        }
+
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
+
+            ushort count = 0;
+            bool isSuccess = true;
+
+            count += 2; // packet.size 바이트 크기
+
+            isSuccess &= BitConverter.TryWriteBytes(
+                new Span<byte>(
+                    openSegement.Array,
+                    openSegement.Offset + count,
+                    openSegement.Count - count
+                ), 
+                this.packetId
+            );
+            count += 2; // packet.packetId 바이트 크기
+
+            isSuccess &= BitConverter.TryWriteBytes(
+                new Span<byte>(
+                    openSegement.Array,
+                    openSegement.Offset + count,
+                    openSegement.Count - count
+                ), 
+                this.playerId
+            );
+            count += 8; // packet.packetId 바이트 크기
+
+            isSuccess &= BitConverter.TryWriteBytes(
+                new Span<byte>(
+                    openSegement.Array,
+                    openSegement.Offset,
+                    openSegement.Count
+                ), 
+                count
+            );
+
+            if (!isSuccess)
+            {
+                return null;
+            }
+
+            return SendBufferHelper.Close(count);
+        }
     }
 
     public enum PacketID
@@ -38,44 +104,12 @@ namespace DummyClient
         {
             Console.WriteLine($"Connected : {endPoint}");
 
-            PlayerInfoReq packet = new PlayerInfoReq() { packetId = (ushort)PacketID.PlayerInfoReq, playerId = 1001 };
+            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001 };
 
+            ArraySegment<byte> sendBuffer = packet.Write();
+            
             // 보냄
-            ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
-
-            ushort count = 0;
-            bool isSuccess = true;
-
-            count += 2; // packet.size 바이트 크기
-
-            isSuccess &= BitConverter.TryWriteBytes(
-                new Span<byte>(
-                    openSegement.Array,
-                    openSegement.Offset + count,
-                    openSegement.Count - count
-                    ), packet.packetId);
-            count += 2; // packet.packetId 바이트 크기
-
-            isSuccess &= BitConverter.TryWriteBytes(
-                new Span<byte>(
-                    openSegement.Array,
-                    openSegement.Offset + count,
-                    openSegement.Count - count
-                    ), packet.playerId);
-            count += 8; // packet.packetId 바이트 크기
-
-            isSuccess &= BitConverter.TryWriteBytes(
-                new Span<byte>(
-                    openSegement.Array,
-                    openSegement.Offset,
-                    openSegement.Count
-                    ), count);
-
-
-            ArraySegment<byte> sendBuffer = SendBufferHelper.Close(count);
-
-            // 보냄
-            if(isSuccess)
+            if (sendBuffer != null)
             {
                 Send(sendBuffer);
             }

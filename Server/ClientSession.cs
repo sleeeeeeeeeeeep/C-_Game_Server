@@ -8,21 +8,81 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    class Packet
+    public abstract class Packet
     {
         public ushort size;
         public ushort packetId;
+
+        public abstract ArraySegment<byte> Write();
+        public abstract void Read(ArraySegment<byte> arraySegement);
+
     }
 
     class PlayerInfoReq : Packet
     {
         public long playerId;
-    }
 
-    class PlayerInfoRes : Packet
-    {
-        public int hp;
-        public int attack;
+        public PlayerInfoReq()
+        {
+            this.packetId = (ushort)PacketID.PlayerInfoReq;
+        }
+
+        public override void Read(ArraySegment<byte> arraySegement)
+        {
+            ushort count = 0;
+
+            count += 2;
+            count += 2;
+
+            BitConverter.ToUInt64(
+                new ReadOnlySpan<byte>(
+                    arraySegement.Array,
+                    arraySegement.Offset + count,
+                    arraySegement.Count - count
+                )
+            );
+            count += 8;
+        }
+
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
+
+            ushort count = 0;
+            bool isSuccess = true;
+
+            count += 2; // packet.size 바이트 크기
+
+            isSuccess &= BitConverter.TryWriteBytes(
+                new Span<byte>(
+                    openSegement.Array,
+                    openSegement.Offset + count,
+                    openSegement.Count - count
+                    ), this.packetId);
+            count += 2; // packet.packetId 바이트 크기
+
+            isSuccess &= BitConverter.TryWriteBytes(
+                new Span<byte>(
+                    openSegement.Array,
+                    openSegement.Offset + count,
+                    openSegement.Count - count
+                    ), this.playerId);
+            count += 8; // packet.packetId 바이트 크기
+
+            isSuccess &= BitConverter.TryWriteBytes(
+                new Span<byte>(
+                    openSegement.Array,
+                    openSegement.Offset,
+                    openSegement.Count
+                    ), count);
+
+            if (isSuccess)
+            {
+                return null;
+            }
+
+            return SendBufferHelper.Close(count);
+        }
     }
 
     public enum PacketID
@@ -37,7 +97,7 @@ namespace Server
         {
             Console.WriteLine($"Connected : {endPoint}");
 
-            Packet packet = new Packet() { size = 50, packetId = 1 };
+            PlayerInfoReq packet = new PlayerInfoReq();
 
             ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
             byte[] buffer1 = BitConverter.GetBytes(packet.size);
@@ -67,10 +127,10 @@ namespace Server
             {
                 case PacketID.PlayerInfoReq:
                     {
-                        long playerId = (long)BitConverter.ToUInt64(buffer.Array, buffer.Offset + count);
-                        count += 8;
+                        PlayerInfoReq playerInfo = new PlayerInfoReq();
+                        playerInfo.Read(buffer);
 
-                        Console.WriteLine($"플레이어 id: {playerId}");
+                        Console.WriteLine($"플레이어 id: {playerInfo.playerId}");
 
                         break;
                     } 
