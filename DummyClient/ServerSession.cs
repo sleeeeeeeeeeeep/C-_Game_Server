@@ -9,17 +9,7 @@ using System.Threading.Tasks;
 
 namespace DummyClient
 {
-    public abstract class Packet
-    {
-        public ushort size;
-        public ushort packetId;
-
-        public abstract ArraySegment<byte> Write();
-        public abstract void Read(ArraySegment<byte> arraySegement);
-
-    }
-
-    class PlayerInfoReq : Packet
+    class PlayerInfoReq
     {
         public long playerId;
         public string name;
@@ -62,12 +52,9 @@ namespace DummyClient
 
         public List<SkillInfo> skills = new List<SkillInfo>();
 
-        public PlayerInfoReq()
-        {
-            this.packetId = (ushort)PacketID.PlayerInfoReq;
-        }
+        
 
-        public override void Read(ArraySegment<byte> arraySegement)
+        public void Read(ArraySegment<byte> arraySegement)
         {
             ushort count = 0;
 
@@ -102,7 +89,7 @@ namespace DummyClient
 
         }
 
-        public override ArraySegment<byte> Write()
+        public ArraySegment<byte> Write()
         {
             ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
 
@@ -113,7 +100,7 @@ namespace DummyClient
 
             count += sizeof(ushort); // packet.size 바이트 크기(전체 패킷 사이즈 정보)
 
-            isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.packetId);
+            isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
             count += sizeof(ushort); // packet.packetId 바이트 크기
 
             isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
