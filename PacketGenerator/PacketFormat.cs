@@ -32,7 +32,7 @@ class {0}
     }}
 
     public ArraySegment<byte> Write()
-    {
+    {{
         ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
 
         ushort count = 0;
@@ -69,8 +69,42 @@ public enum PacketID
         // ----------------------------------------------------------------------------------------------------------
         // {0} 변수 자료형
         // {1} 변수 이름
-        public static string memberFormat = "public {0} {1}";
+        public static string memberFormat = 
+@"
+public {0} {1};
+";
 
+        // ----------------------------------------------------------------------------------------------------------
+        // {0} 리스트 정의(struct)
+        // {1} 리스트 이름(변수)
+        // {2} 리스트 내 멤버 변수
+        // {3} 리스트 내 멤버 변수 read
+        // {4} 리스트 내 멤버 변수 write
+        public static string memberListFormat =
+@"
+public struct {0}
+{{
+    {2}
+
+    public void Read(ReadOnlySpan<byte> s, ref ushort count)
+    {{
+        {3}
+    }}
+
+    public bool Write(Span<byte> s, ref ushort count)
+    {{
+        bool isSuccess = true;
+
+        {4}
+
+        return isSuccess;
+    }}
+}}
+
+public List<{0}> {1}s = new List<{0}>();
+";
+
+        // ----------------------------------------------------------------------------------------------------------
         // {0} 변수 이름
         // {1} 바이트 크기로 변하는 BitConverter.To~()
         // {2} 변수 자료형(바이트 크기)
@@ -79,6 +113,7 @@ public enum PacketID
 this.{0} = BitConverter.{1}(s.Slice(count, s.Length - count));
 count += sizeof({2});
 ";
+
         // ----------------------------------------------------------------------------------------------------------
         // {0} 변수 이름
         public static string readStringFormat =
@@ -91,6 +126,26 @@ count += {0}Length;
 ";
 
         // ----------------------------------------------------------------------------------------------------------
+        // {0} 리스트 정의(struct)
+        // {1} 리스트 이름(변수)
+        public static string readListFormat =
+@"
+this.{1}s.Clear();
+
+ushort {1}Length = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
+count += sizeof(ushort);
+
+for (int i = 0; i < {1}Length; i++)
+{{
+    {0} skill = new {0}();
+    {1}.Read(s, ref count);
+
+    {1}s.Add({1});
+}}
+";
+
+
+        // ----------------------------------------------------------------------------------------------------------
         // {0} 변수 이름
         // {1} 변수 자료형
         public static string writeFormat =
@@ -98,6 +153,7 @@ count += {0}Length;
 isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.{0});
 count += sizeof({1}); // {0} 바이트 크기
 ";
+
 
         // ----------------------------------------------------------------------------------------------------------
         // {0} 변수 이름
@@ -117,5 +173,20 @@ count += sizeof(ushort); // {0}에 해당하는 스트링 크기 알려주는 �
 count += {0}Length; // {0} 바이트 크기
 ";
 
+
+        // ----------------------------------------------------------------------------------------------------------
+        // {0} 리스트 정의(struct)
+        // {1} 리스트 이름(변수)
+        public static string writeListFormat =
+@"
+// list 보낼 때
+isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)this.{1}s.Count);
+count += sizeof(ushort); // packet.{1}s에서 리스트 크기 알려주는 부분
+
+foreach ({0} {1} in this.{1}s)
+{{
+    isSuccess &= {1}.Write(s, ref count);
+}}
+";
     }
 }
