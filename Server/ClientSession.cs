@@ -9,23 +9,58 @@ using System.Threading.Tasks;
 namespace Server
 {
 
+    public enum PacketID
+    {
+        PlayerInfoReq = 1,
+        Test = 2,
+
+    }
+
+
     class PlayerInfoReq
     {
 
-
+        public byte testByte;
         public long playerId;
-
         public string name;
 
-        public struct Skill
+        public class Skill
         {
 
-
             public int id;
-
             public short level;
-
             public float duration;
+
+            public class Attribute
+            {
+
+                public int att;
+
+
+                public void Read(ReadOnlySpan<byte> s, ref ushort count)
+                {
+
+
+                    this.att = BitConverter.ToInt32(s.Slice(count, s.Length - count));
+                    count += sizeof(int);
+
+                }
+
+                public bool Write(Span<byte> s, ref ushort count)
+                {
+                    bool isSuccess = true;
+
+
+
+                    isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.att);
+                    count += sizeof(int); // att 바이트 크기
+
+
+                    return isSuccess;
+                }
+            }
+
+            public List<Attribute> attributes = new List<Attribute>();
 
 
             public void Read(ReadOnlySpan<byte> s, ref ushort count)
@@ -40,6 +75,19 @@ namespace Server
 
                 this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
                 count += sizeof(float);
+
+                this.attributes.Clear();
+
+                ushort attributeLength = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
+                count += sizeof(ushort);
+
+                for (int i = 0; i < attributeLength; i++)
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.Read(s, ref count);
+
+                    attributes.Add(attribute);
+                }
 
             }
 
@@ -57,6 +105,15 @@ namespace Server
 
                 isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.duration);
                 count += sizeof(float); // duration 바이트 크기
+
+                // list 보낼 때
+                isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)this.attributes.Count);
+                count += sizeof(ushort); // packet.attributes에서 리스트 크기 알려주는 부분
+
+                foreach (Attribute attribute in this.attributes)
+                {
+                    isSuccess &= attribute.Write(s, ref count);
+                }
 
 
                 return isSuccess;
@@ -76,6 +133,9 @@ namespace Server
             count += sizeof(ushort);
 
 
+
+            this.testByte = (byte)arraySegement.Array[arraySegement.Offset + count];
+            count += sizeof(byte);
 
             this.playerId = BitConverter.ToInt64(s.Slice(count, s.Length - count));
             count += sizeof(long);
@@ -118,6 +178,9 @@ namespace Server
 
 
 
+            openSegement.Array[openSegement.Offset + count] = (byte)this.testByte;
+            count += sizeof(byte);
+
             isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
             count += sizeof(long); // playerId 바이트 크기
 
@@ -154,12 +217,6 @@ namespace Server
 
             return SendBufferHelper.Close(count);
         }
-    }
-
-    public enum PacketID
-    {
-        PlayerInfoReq = 1,
-        PlayerInfoRes = 2,
     }
 
 

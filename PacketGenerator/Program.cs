@@ -4,7 +4,10 @@ namespace PacketGenerator
 {
     internal class Program
     {
-        static string genPacket;
+        static ushort packetId;
+        static string packetEnums; // 패킷 종류 정의하는 코드
+        static string genPacket; // 패킷 읽고 쓰는 코드
+
         static void Main(string[] args)
         {
             XmlReaderSettings settings = new XmlReaderSettings()
@@ -29,7 +32,9 @@ namespace PacketGenerator
                     Console.WriteLine(reader.Name + " " + reader["name"]);
                 }
 
-                File.WriteAllText("GeneratePacket.cs", genPacket);
+
+                string fileText = String.Format(PacketFormat.fileFormat, packetEnums, genPacket);
+                File.WriteAllText("GeneratePacket.cs", fileText);
             }
 
         }
@@ -64,6 +69,8 @@ namespace PacketGenerator
                 t.Item2,
                 t.Item3
             );
+
+            packetEnums += string.Format(PacketFormat.packetEnumFormat, packetName, ++packetId) + Environment.NewLine + "\t";
         }
 
         // {1} 멤버 변수
@@ -111,6 +118,22 @@ namespace PacketGenerator
                 string memberType = reader.Name.ToLower();
                 switch (memberType)
                 {
+                    case "byte":
+                    case "sbyte":
+                        // {0} 변수 자료형
+                        // {1} 변수 이름
+                        memberCode += String.Format(PacketFormat.memberFormat, memberType, memberName);
+
+                        // {0} 변수 이름
+                        // {1} 변수 자료형(바이트 크기)
+                        readCode += String.Format(PacketFormat.readByteFormat, memberName, memberType);
+
+                        // {0} 변수 이름
+                        // {1} 변수 자료형(바이트 크기)
+                        writeCode += String.Format(PacketFormat.writeByteFormat, memberName, memberType);
+
+                        break;
+
                     case "bool":
                     case "short":
                     case "ushort":
