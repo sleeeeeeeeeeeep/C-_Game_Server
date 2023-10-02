@@ -107,7 +107,6 @@ public List<{0}> {1}s = new List<{0}>();
         // ----------------------------------------------------------------------------------------------------------
         // {0} 변수 이름
         // {1} 바이트 크기로 변하는 BitConverter.To~()
-        // {2} 변수 자료형(바이트 크기)
         public static string readFormat =
 @"
 this.{0} = BitConverter.{1}(s.Slice(count, s.Length - count));
