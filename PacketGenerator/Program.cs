@@ -10,14 +10,21 @@ namespace PacketGenerator
 
         static void Main(string[] args)
         {
+            string pdlPath = "PDL.xml";
+
             XmlReaderSettings settings = new XmlReaderSettings()
             {
                 IgnoreComments = true,
                 IgnoreWhitespace = true
             };
 
+            if(args.Length >= 1 ) 
+            {
+                pdlPath = args[0];
+            }
+
             // using 범위 벗어나면 객체 소멸
-            using(XmlReader reader = XmlReader.Create("PDL.xml", settings))
+            using(XmlReader reader = XmlReader.Create(pdlPath, settings))
             {
                 reader.MoveToContent();
 
