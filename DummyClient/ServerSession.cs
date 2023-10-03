@@ -2,7 +2,6 @@
 using System;
 using System.Net;
 using System.Text;
-using static DummyClient.PlayerInfoReq.Skill;
 
 namespace DummyClient
 {

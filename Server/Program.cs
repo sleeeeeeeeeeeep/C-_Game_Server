@@ -3,6 +3,7 @@ using static System.Collections.Specialized.BitVector32;
 using System.Net;
 using System.Text;
 using ServerCore;
+using Server.Packet;
 
 namespace Server
 {
@@ -12,6 +13,8 @@ namespace Server
 
         static void Main(string[] args)
         {
+            PacketManager.Instatnce.Register();
+
             // DNS
             string host = Dns.GetHostName();
             IPHostEntry ipHost = Dns.GetHostEntry(host);

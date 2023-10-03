@@ -1,4 +1,5 @@
-﻿using ServerCore;
+﻿using Server.Packet;
+using ServerCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +9,6 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-
-    
-
-
     class ClientSession : PacketSession
     {
         public override void OnConnected(EndPoint endPoint)
@@ -37,35 +34,7 @@ namespace Server
 
         public override void OnReceivedPacket(ArraySegment<byte> buffer)
         {
-            ushort count = 0;
-
-            ushort size = BitConverter.ToUInt16(buffer.Array, buffer.Offset);
-            count += 2;
-            ushort id = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
-            count += 2;
-
-            switch((PacketID) id)
-            {
-                case PacketID.PlayerInfoReq:
-                    {
-                        PlayerInfoReq playerInfo = new PlayerInfoReq();
-                        playerInfo.Read(buffer);
-
-                        Console.WriteLine($"플레이어 id: {playerInfo.playerId}");
-                        Console.WriteLine($"플레이어 이름: {playerInfo.name}");
-
-                        foreach(PlayerInfoReq.Skill skill in playerInfo.skills)
-                        {
-                            Console.WriteLine($"스킬 id: {skill.id}");
-                            Console.WriteLine($"스킬 레벨: {skill.level}");
-                            Console.WriteLine($"스킬 시간: {skill.duration}");
-                        }
-
-                        break;
-                    } 
-            }
-
-            Console.WriteLine($"패킷사이즈: {size}, 패킷아이디: {id}");
+            PacketManager.Instatnce.OnRecvPacket(this, buffer);
         }
 
         public override void OnSend(int numOfBytes)
