@@ -13,25 +13,25 @@ namespace DummyClient
         {
             Console.WriteLine($"Connected : {endPoint}");
 
-            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001, name = "이르음" };
+            C_PlayerInfoReq packet = new C_PlayerInfoReq() { playerId = 1001, name = "이르음" };
 
-            var skill = new PlayerInfoReq.Skill()
+            var skill = new C_PlayerInfoReq.Skill()
             {
                 id = 101,
                 level = 3,
                 duration = 2.5f
             };
-            skill.attributes.Add(new PlayerInfoReq.Skill.Attribute() { att = 1 });
+            skill.attributes.Add(new C_PlayerInfoReq.Skill.Attribute() { att = 1 });
             packet.skills.Add(skill);
 
-            packet.skills.Add(new PlayerInfoReq.Skill()
+            packet.skills.Add(new C_PlayerInfoReq.Skill()
             {
                 id = 102,
                 level = 4,
                 duration = 3.5f
             });
 
-            packet.skills.Add(new PlayerInfoReq.Skill()
+            packet.skills.Add(new C_PlayerInfoReq.Skill()
             {
                 id = 201,
                 level = 1,

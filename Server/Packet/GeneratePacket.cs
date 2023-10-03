@@ -4,8 +4,8 @@ using System.Text;
 
 public enum PacketID
 {
-    PlayerInfoReq = 1,
-	Test = 2,
+    C_PlayerInfoReq = 1,
+	S_Test = 2,
 	
 }
 
@@ -17,7 +17,7 @@ interface IPacket
 }
 
 
-class PlayerInfoReq : IPacket
+class C_PlayerInfoReq : IPacket
 {
     
 	public byte testByte;
@@ -125,7 +125,7 @@ class PlayerInfoReq : IPacket
 
     public ushort Protocol
 	{
-		get { return (ushort)PacketID.PlayerInfoReq; }
+		get { return (ushort)PacketID.C_PlayerInfoReq; }
 	}
 
     public void Read(ArraySegment<byte> arraySegement)
@@ -178,7 +178,7 @@ class PlayerInfoReq : IPacket
 
         count += sizeof(ushort); // 전체 패킷 사이즈 정보
 
-        isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
+        isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.C_PlayerInfoReq);
         count += sizeof(ushort); // 패킷 아이디(패킷 구분) 바이트 크기
 
         
@@ -224,7 +224,7 @@ class PlayerInfoReq : IPacket
     }
 }
 
-class Test : IPacket
+class S_Test : IPacket
 {
     
 	public int testInt;
@@ -232,7 +232,7 @@ class Test : IPacket
 
     public ushort Protocol
 	{
-		get { return (ushort)PacketID.Test; }
+		get { return (ushort)PacketID.S_Test; }
 	}
 
     public void Read(ArraySegment<byte> arraySegement)
@@ -263,7 +263,7 @@ class Test : IPacket
 
         count += sizeof(ushort); // 전체 패킷 사이즈 정보
 
-        isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.Test);
+        isSuccess &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.S_Test);
         count += sizeof(ushort); // 패킷 아이디(패킷 구분) 바이트 크기
 
         

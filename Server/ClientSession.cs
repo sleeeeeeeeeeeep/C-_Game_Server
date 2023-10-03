@@ -1,5 +1,4 @@
-﻿using Server.Packet;
-using ServerCore;
+﻿using ServerCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace Server
         {
             Console.WriteLine($"Connected : {endPoint}");
 
-            PlayerInfoReq packet = new PlayerInfoReq();
+            C_PlayerInfoReq packet = new C_PlayerInfoReq();
 
             //ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
             //byte[] buffer1 = BitConverter.GetBytes(packet.size);

@@ -3,7 +3,6 @@ using static System.Collections.Specialized.BitVector32;
 using System.Net;
 using System.Text;
 using ServerCore;
-using Server.Packet;
 
 namespace Server
 {

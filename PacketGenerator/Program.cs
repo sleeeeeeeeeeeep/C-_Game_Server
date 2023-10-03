@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Data;
+using System.Xml;
 
 namespace PacketGenerator
 {
@@ -7,6 +8,9 @@ namespace PacketGenerator
         static ushort packetId;
         static string packetEnums; // 패킷 종류 정의하는 코드
         static string genPacket; // 패킷 읽고 쓰는 코드
+
+        static string clientManagerRegister;
+        static string serverManagerRegister;
 
         static void Main(string[] args)
         {
@@ -42,6 +46,12 @@ namespace PacketGenerator
 
                 string fileText = String.Format(PacketFormat.fileFormat, packetEnums, genPacket);
                 File.WriteAllText("GeneratePacket.cs", fileText);
+
+                string clientManagerText = String.Format(PacketFormat.managerFormat, clientManagerRegister);
+                File.WriteAllText("ClientPacketManager.cs", clientManagerText);
+
+                string serverManagerText = String.Format(PacketFormat.managerFormat, serverManagerRegister);
+                File.WriteAllText("ServerPacketManager.cs", serverManagerText);
             }
 
         }
@@ -78,6 +88,15 @@ namespace PacketGenerator
             );
 
             packetEnums += string.Format(PacketFormat.packetEnumFormat, packetName, ++packetId) + Environment.NewLine + "\t";
+
+            if(packetName.StartsWith("S_") || packetName.StartsWith("s_"))
+            {
+                clientManagerRegister += string.Format(PacketFormat.managerRegisterFormat, packetName) + Environment.NewLine;
+            }
+            else
+            {
+                serverManagerRegister += string.Format(PacketFormat.managerRegisterFormat, packetName) + Environment.NewLine;
+            }
         }
 
         // {1} 멤버 변수
