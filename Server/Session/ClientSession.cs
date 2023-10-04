@@ -6,29 +6,19 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server
+namespace Server.Session
 {
     class ClientSession : PacketSession
     {
+        public int SessionId { get; set; }
+        public GameRoom Room { get; set; }
+
+
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"Connected : {endPoint}");
 
-            C_PlayerInfoReq packet = new C_PlayerInfoReq();
-
-            //ArraySegment<byte> openSegement = SendBufferHelper.Open(4096);
-            //byte[] buffer1 = BitConverter.GetBytes(packet.size);
-            //byte[] buffer2 = BitConverter.GetBytes(packet.packetId);
-            //Array.Copy(buffer1, 0, openSegement.Array, openSegement.Offset, buffer1.Length);
-            //Array.Copy(buffer2, 0, openSegement.Array, openSegement.Offset + buffer1.Length, buffer2.Length);
-            //ArraySegment<byte> sendBuffer = SendBufferHelper.Close(buffer1.Length + buffer2.Length);
-
-            //// 보냄
-            //Send(sendBuffer);
-
-            Thread.Sleep(5000);
-
-            Disconnect();
+            Program.room.Enter(this);
         }
 
         public override void OnReceivedPacket(ArraySegment<byte> buffer)
@@ -43,6 +33,14 @@ namespace Server
 
         public override void OnDisconnected(EndPoint endPoint)
         {
+            SessionManager.Instance.Remove(this);
+
+            if(Room != null )
+            {
+                Room.Leave(this);
+                Room = null;
+            }
+
             Console.WriteLine($"disconnected : {endPoint}");
         }
     }
