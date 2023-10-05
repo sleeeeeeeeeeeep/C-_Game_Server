@@ -9,20 +9,17 @@ using System.Threading.Tasks;
 internal class PacketManager
 {
     #region Singleton
-    static PacketManager _instatce;
+    static PacketManager _instatce = new PacketManager();
     public static PacketManager Instatnce
     {
-        get
-        {
-            if (_instatce == null)
-            {
-                _instatce = new PacketManager();
-            }
-
-            return _instatce;
-        }
+        get{ return _instatce; }
     }
     #endregion
+
+    PacketManager() 
+    {
+        Register();
+    }
 
     Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv
         = new Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>>();

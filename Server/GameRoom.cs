@@ -12,11 +12,11 @@ namespace Server
         List<ClientSession> _sessions = new List<ClientSession>();
         object _lock = new object();
 
-        public void BroadCase(ClientSession session, string chat)
+        public void BroadCast(ClientSession session, string chat)
         {
             S_Chat packet = new S_Chat();
             packet.playerId = session.SessionId; 
-            packet.chat = chat;
+            packet.chat = chat + " " + packet.playerId;
 
             ArraySegment<byte> segment = packet.Write();
 
