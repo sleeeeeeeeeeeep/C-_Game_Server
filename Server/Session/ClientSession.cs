@@ -18,7 +18,7 @@ namespace Server.Session
         {
             Console.WriteLine($"Connected : {endPoint}");
 
-            Program.room.Enter(this);
+            Program.room.Push(() =>  Program.room.Enter(this) );
         }
 
         public override void OnReceivedPacket(ArraySegment<byte> buffer)
@@ -37,7 +37,8 @@ namespace Server.Session
 
             if(Room != null )
             {
-                Room.Leave(this);
+                GameRoom room = Room; // 큐에 넣어서 작업 밀리면 널참조로 크래쉬 발생할 수 있어서 이렇게 씀
+                room.Push(() => room.Leave(this));
                 Room = null;
             }
 

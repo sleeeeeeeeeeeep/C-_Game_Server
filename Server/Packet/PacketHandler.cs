@@ -1,4 +1,5 @@
-﻿using Server.Session;
+﻿using Server;
+using Server.Session;
 using ServerCore;
 using System;
 using System.Collections.Generic;
@@ -19,9 +20,8 @@ internal class PacketHandler
             return;
         }
 
-        clientSession.Room.BroadCast(clientSession, chatPacket.chat);
+        GameRoom room = clientSession.Room; // 큐에 넣어서 작업 밀리면 널참조로 크래쉬 발생할 수 있어서 이렇게 씀
+        room.Push(() => clientSession.Room.BroadCast(clientSession, chatPacket.chat));
     }
-
-    
 }
 

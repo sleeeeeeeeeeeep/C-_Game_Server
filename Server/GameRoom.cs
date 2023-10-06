@@ -4,13 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Server.Session;
+using ServerCore;
 
 namespace Server
 {
-    internal class GameRoom
+    internal class GameRoom : IJobQueue
     {
         List<ClientSession> _sessions = new List<ClientSession>();
-        object _lock = new object();
+        JobQueue _jobqueue = new JobQueue();
+
+        public void Push(Action job)
+        {
+            _jobqueue.Push(job);
+        }
 
         public void BroadCast(ClientSession session, string chat)
         {
@@ -20,30 +26,21 @@ namespace Server
 
             ArraySegment<byte> segment = packet.Write();
 
-            lock (_lock)
+            foreach(ClientSession s in _sessions)
             {
-                foreach(ClientSession s in _sessions)
-                {
-                    s.Send(segment);
-                }
+                s.Send(segment);
             }
         }
 
         public void Enter(ClientSession session)
         {
-            lock (_lock)
-            {
-                _sessions.Add(session);
-                session.Room = this;
-            }
+            _sessions.Add(session);
+            session.Room = this;
         }
 
         public void Leave(ClientSession session)
         {
-            lock (_lock) 
-            {
-                _sessions.Remove(session);
-            }
+            _sessions.Remove(session);
         }
     }
 }
