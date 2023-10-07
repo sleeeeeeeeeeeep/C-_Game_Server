@@ -18,6 +18,7 @@ namespace ServerCore
         public sealed override int OnReceived(ArraySegment<byte> buffer)
         {
             int processLength = 0;
+            int packetCount = 0;
 
             while (true)
             {
@@ -37,11 +38,17 @@ namespace ServerCore
 
                 // 패킷 처리 가능하면 얘 실행
                 OnReceivedPacket(new ArraySegment<byte> (buffer.Array, buffer.Offset, dataSize));
+                packetCount++;
 
                 processLength += dataSize;
                 
                 // 처리한 버퍼 부분 날리기(다시 버퍼 구성)
                 buffer = new ArraySegment<byte>(buffer.Array, buffer.Offset + dataSize, buffer.Count - dataSize);
+            }
+
+            if(packetCount > 1)
+            {
+                Console.WriteLine($"한 번에 받은 패킷 수 : {packetCount}");
             }
 
             return processLength;
@@ -55,7 +62,7 @@ namespace ServerCore
         Socket _socket;
         int _disconnected = 0;
 
-        ReceiveBuffer _receivebuffer = new ReceiveBuffer(1024);
+        ReceiveBuffer _receivebuffer = new ReceiveBuffer(65535);
 
         object _lock = new object();
 
@@ -97,10 +104,29 @@ namespace ServerCore
         // -> 보내는 동안에 다른 애가 큐에 집어넣으면 다시 RegisterSend()...
         public void Send(ArraySegment<byte> sendBuffer)
         {
-            // 락(멀티스레드 동작)
             lock (_lock)
             {
                 _sendQueue.Enqueue(sendBuffer);
+                if (_pendingList.Count == 0)
+                    RegisterSend();
+            }
+        }
+
+        public void Send(List<ArraySegment<byte>> sendBufferList)
+        {
+            if(sendBufferList.Count == 0)
+            {
+                return;
+            }
+
+            // 락(멀티스레드 동작)
+            lock (_lock)
+            {
+                foreach (ArraySegment<byte> sendBuffer in sendBufferList) 
+                { 
+                    _sendQueue.Enqueue(sendBuffer);
+                }
+
                 if (_pendingList.Count == 0)
                 {
                     RegisterSend();

@@ -14,6 +14,6 @@ internal class PacketHandler
         ServerSession serverSession = session as ServerSession;
 
         
-        Console.WriteLine(chatPacket.chat);
+        // Console.WriteLine(chatPacket.chat);
     }
 }

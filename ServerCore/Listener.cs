@@ -13,17 +13,20 @@ namespace ServerCore
         Socket _listenSocket;
         Func<Session> _sessionFactory;
 
-        public void Init(IPEndPoint endPoint, Func<Session> sessionFactory)
+        public void Init(IPEndPoint endPoint, Func<Session> sessionFactory, int register = 10, int backlog = 100)
         {
             _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             _sessionFactory += sessionFactory;
 
             _listenSocket.Bind(endPoint);
-            _listenSocket.Listen(10); // backlog: 최대 대기 수
+            _listenSocket.Listen(backlog); // backlog: 최대 대기 수
 
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted); //SocketAsyncEventArgs 얘 실행되면 콜백으로 OnAcceptCompleted 실행
-            RegisterAccept(args);
+            for(int i = 0; i < register; i++)
+            {
+                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+                args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted); //SocketAsyncEventArgs 얘 실행되면 콜백으로 OnAcceptCompleted 실행
+                RegisterAccept(args);
+            }
         }
 
         private void RegisterAccept(SocketAsyncEventArgs args)

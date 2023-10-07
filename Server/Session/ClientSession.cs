@@ -28,7 +28,7 @@ namespace Server.Session
 
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine($"Transfreed bytes: {numOfBytes}");
+            // Console.WriteLine($"Transfreed bytes: {numOfBytes}");
         }
 
         public override void OnDisconnected(EndPoint endPoint)

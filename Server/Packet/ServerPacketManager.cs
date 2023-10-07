@@ -50,7 +50,7 @@ internal class PacketManager
             action.Invoke(session, buffer);
         }
 
-        Console.WriteLine($"패킷사이즈: {size}, 패킷아이디: {id}");
+        //Console.WriteLine($"패킷사이즈: {size}, 패킷아이디: {id}");
     }
 
     private void MakePacket<T>(PacketSession session, ArraySegment<byte> buffer) where T : IPacket, new ()
