@@ -12,6 +12,12 @@ namespace Server
         static Listener listener = new Listener();
         public static GameRoom room = new GameRoom();
 
+        static void FlushRoom()
+        {
+            room.Push(() => room.Flush());
+            JobTimer.Instance.Push(FlushRoom, 250);
+        }
+
         static void Main(string[] args)
         {
             // DNS
@@ -23,12 +29,13 @@ namespace Server
             listener.Init(endPoint, () => { return SessionManager.Instance.Generate(); });
             Console.WriteLine("listen...");
 
+            // FlushRoom(); 와 동일한 의미
+            JobTimer.Instance.Push(FlushRoom);
+
             while (true)
             {
-                room.Push(() => room.Flush());
-                Thread.Sleep(250);
+                JobTimer.Instance.Flush();
             }
-
         }
     }
 }
