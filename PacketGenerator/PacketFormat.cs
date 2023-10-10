@@ -88,6 +88,7 @@ internal class PacketManager
         // {1} 패킷 포맷
         public static string fileFormat =
 @"using ServerCore;
+using System;
 using System.Net;
 using System.Text;
 
