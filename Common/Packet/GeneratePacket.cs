@@ -1,4 +1,5 @@
 using ServerCore;
+using System;
 using System.Net;
 using System.Text;
 
@@ -9,7 +10,7 @@ public enum PacketID
 	
 }
 
-interface IPacket
+public interface IPacket
 {
     ushort Protocol { get;}
     void Read(ArraySegment<byte> segement);
