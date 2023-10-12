@@ -18,7 +18,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-internal class PacketManager
+public class PacketManager
 {{
     #region Singleton
     static PacketManager _instatce = new PacketManager();
@@ -135,7 +135,7 @@ public interface IPacket
         // {3} 멤버 변수 write
         public static string packetFormat =
 @"
-class {0} : IPacket
+public class {0} : IPacket
 {{
     {1}
 

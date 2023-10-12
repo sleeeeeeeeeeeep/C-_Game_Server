@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-internal class PacketManager
+public class PacketManager
 {
     #region Singleton
     static PacketManager _instatce = new PacketManager();
@@ -29,8 +29,11 @@ internal class PacketManager
 
     public void Register()
     {
-        _makeFunc.Add((ushort)PacketID.C_Chat, MakePacket<C_Chat>);
-        _handler.Add((ushort)PacketID.C_Chat, PacketHandler.C_ChatHandler);
+        _makeFunc.Add((ushort)PacketID.C_LeaveGame, MakePacket<C_LeaveGame>);
+        _handler.Add((ushort)PacketID.C_LeaveGame, PacketHandler.C_LeaveGameHandler);
+
+_makeFunc.Add((ushort)PacketID.C_Move, MakePacket<C_Move>);
+        _handler.Add((ushort)PacketID.C_Move, PacketHandler.C_MoveHandler);
 
 
     }
