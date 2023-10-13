@@ -90,7 +90,7 @@ namespace Server
             move.playerId = session.SessionId;
             move.posX = session.PosX;
             move.posY = session.PosY;
-            move.posZ = session.PosY;
+            move.posZ = session.PosZ;
             BroadCast(move.Write());
         }
     }
